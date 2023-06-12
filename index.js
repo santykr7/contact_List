@@ -1,6 +1,10 @@
 const express = require('express')
 const path = require('path')
 
+//db
+const db = require('./config/mongoose');
+const Contact = require('./models/contact')
+
 const app = express()
 
 app.set('view engine','ejs')
@@ -36,13 +40,19 @@ var contactList = [
     }
 ]
 
+//fetch all the data 
 
 app.get('/',(req,res) => {
-    res.render("home",{
-        title:"CONTACT LIST",
-        contact_list:contactList
-    });
+
+    Contact.find({},)
+    .then((data) => {
+        res.render("home",{
+            title:"CONTACT LIST",
+            contact_list:data
+    })
+})
 });
+
 
 app.get('/practice',(req,res) => {
     res.render("practice")
@@ -57,23 +67,32 @@ app.post('/create-contact',(req,res) => {
     // console.log(req.body.name)
     // console.log(req.body.phone)
     // res.redirect('/practice')
-    contactList.push(req.body)
-    res.redirect('back')
-});
+
+    // contactList.push(req.body)
+    Contact.create({                                                                                
+        name:req.body.name,
+        phone:req.body.phone
+        
+    },).then((data) => {console.log('success',data)
+    }).catch((err) => {
+        console.log('errror')
+    })
+        return res.redirect('back');
+    });
+    
 
 app.get('/del-contact',(req,res) => {
-    let phone = req.query.phone
-    console.log(phone)
+    // GET THE ID QUERY FROM URL
+    let id = req.query.id
+    console.log(id)
 
-    let contactIndex = contactList.findIndex(contact => 
-        contact.phone === phone)
-
-        if(contactIndex != -1){
-            contactList.splice(contactIndex, 1) 
-        
-    }
-    res.redirect('back')
+    Contact.findByIdAndDelete(id)
+    .then((data) => {
+        res.redirect('back')
+    })
 })
+      
+    
 
 // //mw1
 // function logger1(req,res,next) {
